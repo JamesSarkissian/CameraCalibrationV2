@@ -39,17 +39,13 @@ def undistort_image(image_path):
     x, y, w, h = roi
     corrected = corrected[y:y+h, x:x+w]
 
-    # Display comparison
-    cv.imshow("Original", image)
-    cv.imshow("Undistorted", corrected)
-
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
     # Save corrected image
+    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+    os.makedirs(output_folder, exist_ok=True)
     filename = os.path.basename(image_path)
-    output_name = f"corrected_{filename}"
+    output_name = os.path.join(output_folder, f"corrected_{filename}")
 
-    cv.imwrite(output_name, corrected)
+    if not cv.imwrite(output_name, corrected):
+        raise IOError(f"Could not save corrected image: {output_name}")
 
     print(f"Saved {output_name}")

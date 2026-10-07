@@ -41,14 +41,30 @@ def calibrate_camera(image_folder):
 
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-        found, corners = cv.findChessboardCorners(
+        # Create a smaller copy of the entire image for detection.
+        height, width = gray.shape
+        detection_gray = cv.resize(
             gray,
+            (max(1, width // 4), max(1, height // 4)),
+            interpolation=cv.INTER_AREA
+        )
+
+        found, corners = cv.findChessboardCorners(
+            detection_gray,
             CHECKERBOARD,
             None
         )
 
         if found:
 
+            # Map corner coordinates back to the original image.
+            corners = corners.reshape(-1, 1, 2)
+            scale_x = width / detection_gray.shape[1]
+            scale_y = height / detection_gray.shape[0]
+            corners[:, :, 0] = (corners[:, :, 0] + 0.5) * scale_x - 0.5
+            corners[:, :, 1] = (corners[:, :, 1] + 0.5) * scale_y - 0.5
+
+            # Refine the corner positions at full resolution.
             corners = cv.cornerSubPix(
                 gray,
                 corners,
